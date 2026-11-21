@@ -167,4 +167,5 @@ USER 1—* CHAT_SESSION (messages embedded).
 2. Phone verification (needs an SMS provider — costs money, can be skipped)
 3. Resource moderation (suggest → admin approves)
 #   M o c k M a t e  
+ #   M o c k M a t e  
  
