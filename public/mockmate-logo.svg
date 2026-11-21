@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <!-- Outer rounded square -->
+  <rect width="200" height="200" rx="44" fill="#6C63FF"/>
+  <!-- Subtle inner glow -->
+  <rect width="200" height="200" rx="44" fill="url(#grad)" opacity="0.5"/>
+  <!-- Chat bubble / mic shape: two overlapping rounded rectangles -->
+  <rect x="38" y="52" width="124" height="82" rx="22" fill="white" opacity="0.15"/>
+  <rect x="46" y="58" width="110" height="70" rx="18" fill="white" opacity="0.92"/>
+  <!-- Three answer lines -->
+  <rect x="62" y="78" width="76" height="7" rx="3.5" fill="#6C63FF" opacity="0.7"/>
+  <rect x="62" y="93" width="54" height="7" rx="3.5" fill="#6C63FF" opacity="0.5"/>
+  <rect x="62" y="108" width="38" height="7" rx="3.5" fill="#6C63FF" opacity="0.35"/>
+  <!-- AI check mark circle (bottom-right) -->
+  <circle cx="142" cy="142" r="28" fill="#6C63FF"/>
+  <circle cx="142" cy="142" r="28" fill="url(#gradcheck)" opacity="0.6"/>
+  <polyline points="130,143 139,152 155,133" stroke="white" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <defs>
+    <linearGradient id="grad" x1="0" y1="0" x2="200" y2="200" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8B7FFF"/>
+      <stop offset="1" stop-color="#5248D8"/>
+    </linearGradient>
+    <linearGradient id="gradcheck" x1="114" y1="114" x2="170" y2="170" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A78BFA"/>
+      <stop offset="1" stop-color="#4F46E5"/>
+    </linearGradient>
+  </defs>
+</svg>

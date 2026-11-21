@@ -1,0 +1,45 @@
+import Animate from "@/components/motion/Animate";
+import Link from "next/link";
+import StatCards from "@/components/dashboard/StatCards";
+import ScoreChart from "@/components/dashboard/ScoreChart";
+import NextUp from "@/components/dashboard/NextUp";
+import CategoryBreakdown from "@/components/dashboard/CategoryBreakdown";
+import RecentInterviews from "@/components/dashboard/RecentInterviews";
+import RecommendedResources from "@/components/dashboard/RecommendedResources";
+import { getCurrentUser } from "@/lib/session";
+import { getDashboardData } from "@/lib/dashboard";
+
+export const metadata = { title: "Dashboard — MockMate" };
+
+export default async function DashboardPage() {
+  const user = await getCurrentUser();
+  const data = await getDashboardData(user.id);
+  const today = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
+
+  return (
+    <>
+      <header className="sticky top-0 z-30 border-b border-ink-line bg-white/90 backdrop-blur-md">
+        <div className="flex min-h-16 flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-10">
+          <div>
+            <p className="inline-flex items-center rounded-full border border-ink-line bg-white px-3 py-1 font-mono text-xs text-slate-muted shadow-xs tracking-wider">{today}</p>
+            <h1 className="mt-2 font-display text-2xl leading-none text-paper">Welcome back, {user.name.split(" ")[0]}</h1>
+          </div>
+          <Link href="/interview" className="btn-primary px-6 py-3 text-sm font-semibold shadow-lg shadow-brand/20">
+            <span className="hidden sm:inline">Start a mock interview</span><span className="sm:hidden">New interview</span> <span aria-hidden="true">→</span>
+          </Link>
+        </div>
+      </header>
+
+      <main className="space-y-8 px-4 py-6 sm:space-y-10 sm:px-6 sm:py-10 lg:px-10">
+        <NextUp nextUp={data.nextUp} />
+        <StatCards stats={data.stats} />
+        <section className="grid gap-6 lg:grid-cols-3">
+          <ScoreChart trend={data.trend} />
+          <CategoryBreakdown items={data.categoryScores} />
+        </section>
+        <Animate><RecentInterviews items={data.recent} /></Animate>
+        <Animate><RecommendedResources /></Animate>
+      </main>
+    </>
+  );
+}
