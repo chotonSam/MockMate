@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import AppNav from "@/components/AppNav";
 import VerifyEmailBanner from "@/components/VerifyEmailBanner";
 import { getCurrentUser } from "@/lib/session";
+import { isMailConfigured } from "@/lib/mail";
 import Notification from "@/lib/models/Notification";
 
 export const dynamic = "force-dynamic"; // always reads the session + database
@@ -18,12 +19,21 @@ export default async function AppLayout({ children }) {
     /* the badge is optional */
   }
 
+  const mailConfigured = isMailConfigured();
+
   return (
     <div className="flex min-h-screen">
       <AppNav user={user} unread={unread} />
       {/* bottom padding on phones so the tab bar never covers content */}
       <div className="min-w-0 flex-1 pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0">
-        {!user.emailVerified && <VerifyEmailBanner email={user.email} required={process.env.REQUIRE_VERIFIED_EMAIL !== "false"} />}
+        {!user.emailVerified && (
+          <VerifyEmailBanner
+            email={user.email}
+            required={process.env.REQUIRE_VERIFIED_EMAIL !== "false"}
+            isConfigured={mailConfigured}
+            initialDevCode={!mailConfigured ? user.devCode : ""}
+          />
+        )}
         {children}
       </div>
     </div>

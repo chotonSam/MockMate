@@ -5,12 +5,12 @@ import { useRouter } from "next/navigation";
 
 // Shown at the top of every logged-in page until the email is verified.
 // Two ways to verify: type the 6-digit code from the email here, or click the link in the email.
-export default function VerifyEmailBanner({ email, required }) {
+export default function VerifyEmailBanner({ email, required, isConfigured = false, initialDevCode = "" }) {
   const router = useRouter();
   const [state, setState] = useState("idle"); // idle | sending | sent | error
   const [message, setMessage] = useState("");
-  const [dev, setDev] = useState({ code: "", link: "" });
-  const [code, setCode] = useState("");
+  const [dev, setDev] = useState({ code: initialDevCode, link: "" });
+  const [code, setCode] = useState(initialDevCode);
   const [checking, setChecking] = useState(false);
   const [codeError, setCodeError] = useState("");
   const [done, setDone] = useState(false);
@@ -41,12 +41,12 @@ export default function VerifyEmailBanner({ email, required }) {
         return;
       }
       if (data.devCode) {
-        setDev({ code: data.devCode, link: data.devLink ?? "" }); // development only: no mail server configured yet
-        setMessage("Email sending isn't set up yet (development mode), so here is your code:");
+        setDev({ code: data.devCode, link: data.devLink ?? "" });
+        setCode(data.devCode);
+        setMessage("Email sending (SMTP) is not configured in .env.local. In dev mode, your code is:");
       } else {
         setMessage(`Sent! Check ${email} (and your spam folder).`);
       }
-      setCode("");
       setState("sent");
     } catch (err) {
       setMessage(err.message);
@@ -83,30 +83,55 @@ export default function VerifyEmailBanner({ email, required }) {
     );
   }
 
+  const activeDevCode = dev.code || initialDevCode;
+
   return (
     <div role="status" className="border-b border-amber-200 bg-amber-50/90 px-4 py-3 text-sm text-slate-800 sm:px-6 lg:px-10">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <p className="min-w-0 flex-1 basis-64 leading-relaxed">
           <span className="font-semibold text-amber-900">Verify your email.</span>{" "}
           <span className="text-slate-700">
-            {required ? "You need it to post, comment and share resources." : "Please confirm your email address."} We sent a code and a link to <span className="break-all font-semibold text-slate-900">{email}</span>.
+            {required ? "You need it to post, comment and share resources." : "Please confirm your email address."}{" "}
+            {isConfigured ? (
+              <>We sent a verification code and link to <span className="break-all font-semibold text-slate-900">{email}</span>.</>
+            ) : (
+              <>SMTP is not set up in <code className="rounded bg-amber-200/60 px-1 py-0.5 font-mono text-xs text-amber-950">.env.local</code>. (Configure <code className="font-mono text-xs">SMTP_USER</code> &amp; <code className="font-mono text-xs">SMTP_PASS</code> to send real emails).</>
+            )}
           </span>
         </p>
-        <button type="button" onClick={resend} disabled={state === "sending"}
-          className="focus-ring shrink-0 rounded-full border border-amber-300 bg-white px-4 py-1.5 font-medium text-amber-800 shadow-sm transition-colors hover:bg-amber-100/60 disabled:opacity-60">
-          {state === "sending" ? "Sending…" : state === "sent" ? "Send again" : "Resend email"}
+        <button
+          type="button"
+          onClick={resend}
+          disabled={state === "sending"}
+          className="focus-ring shrink-0 rounded-full border border-amber-300 bg-white px-4 py-1.5 font-medium text-amber-800 shadow-sm transition-colors hover:bg-amber-100/60 disabled:opacity-60"
+        >
+          {state === "sending" ? "Sending…" : isConfigured ? "Resend email" : "Get dev code"}
         </button>
       </div>
 
+      {!isConfigured && activeDevCode && !message && (
+        <p className="mt-2 text-xs font-medium text-slate-700">
+          Dev mode verification code:{" "}
+          <span className="rounded bg-slate-900 px-2.5 py-0.5 font-mono text-sm tracking-[0.3em] text-white shadow-sm">
+            {activeDevCode}
+          </span>
+          <span className="ml-2 font-normal text-slate-500">(Enter it below or click Verify)</span>
+        </p>
+      )}
+
       {message && (
-        <p className={`mt-2 text-xs font-medium ${state === "error" ? "text-rose-600" : "text-slate-600"}`}>
+        <p className={`mt-2 text-xs font-medium ${state === "error" ? "text-rose-600" : "text-slate-700"}`}>
           {message}{" "}
-          {dev.code && <span className="rounded bg-slate-900 px-2.5 py-0.5 font-mono text-sm tracking-[0.3em] text-white shadow-sm">{dev.code}</span>}
+          {activeDevCode && (
+            <span className="rounded bg-slate-900 px-2.5 py-0.5 font-mono text-sm tracking-[0.3em] text-white shadow-sm">
+              {activeDevCode}
+            </span>
+          )}
         </p>
       )}
 
       <form onSubmit={submitCode} className="mt-3 flex flex-wrap items-center gap-2">
-        <label htmlFor="verify-code" className="text-xs font-medium text-slate-600">Enter the 6-digit code:</label>
+        <label htmlFor="verify-code" className="text-xs font-medium text-slate-700">Enter the 6-digit code:</label>
         <input
           id="verify-code"
           value={code}
@@ -117,8 +142,11 @@ export default function VerifyEmailBanner({ email, required }) {
           placeholder="123456"
           className="focus-ring w-32 rounded-lg border border-amber-300 bg-white px-3 py-1.5 text-center font-mono text-base tracking-[0.3em] text-slate-900 shadow-sm placeholder:tracking-normal placeholder:text-slate-400"
         />
-        <button type="submit" disabled={code.length !== 6 || checking}
-          className="btn-primary px-5 py-1.5 text-sm disabled:cursor-not-allowed disabled:opacity-50">
+        <button
+          type="submit"
+          disabled={code.length !== 6 || checking}
+          className="btn-primary px-5 py-1.5 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+        >
           {checking ? "Checking…" : "Verify"}
         </button>
       </form>
